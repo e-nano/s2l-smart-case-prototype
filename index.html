@@ -85,17 +85,17 @@
         <div>
           <span class="eyebrow">Stakeholder walkthrough</span>
           <h1>One field sample, fully traceable offline.</h1>
-          <p>This prototype shows the operator-facing Smart Case experience. It intentionally contains no jobs, orders or invoice screens.</p>
+          <p>This prototype shows background field capture on the primary 10-inch display and the separate, minimal Position-11 display.</p>
         </div>
         <ol>
-          <li><button type="button" data-demo-step="capture"><span>1</span><strong>Capture 25 cores</strong><small>Each trigger creates a local immutable event.</small></button></li>
-          <li><button type="button" data-demo-step="commission"><span>2</span><strong>Commission a pod</strong><small>RFID, QR and stable weight bind the sample.</small></button></li>
+          <li><button type="button" data-demo-step="capture"><span>1</span><strong>Run background capture</strong><small>Each physical trigger creates a local event; 25 is a guide, not a limit.</small></button></li>
+          <li><button type="button" data-demo-step="commission"><span>2</span><strong>Place pod at Position 11</strong><small>Detection, RFID, QR and stable weight happen automatically.</small></button></li>
           <li><button type="button" data-demo-step="offline"><span>3</span><strong>Work without signal</strong><small>Records remain valid and queue locally.</small></button></li>
           <li><button type="button" data-demo-step="sync"><span>4</span><strong>Reconnect and sync</strong><small>The server reconciles commercial work later.</small></button></li>
         </ol>
         <div class="guide-note">
           <strong>Design rule</strong>
-          <p>Normal sampling needs no map interaction. Manual location selection appears only when GNSS is degraded, unavailable or ambiguous.</p>
+          <p>Normal sampling needs no screen interaction. The operator only responds to clear exceptions or the separate Position-11 feedback.</p>
         </div>
         <button class="reset-button" id="reset-demo" type="button">Reset demo</button>
       </aside>
@@ -123,24 +123,6 @@
           <button class="secondary-button" id="resume-auto" type="button">Resume automatic GNSS</button>
           <button class="primary-button" value="confirm" type="submit">Use selected context</button>
         </footer>
-      </form>
-    </dialog>
-
-    <dialog class="modal modal--compact" id="note-modal">
-      <form method="dialog" class="modal__surface" id="note-form">
-        <header class="modal__header">
-          <div><span class="eyebrow">Local field record</span><h2>Record an exception</h2><p>Saved immediately, even with no connection.</p></div>
-          <button class="icon-button" value="cancel" aria-label="Close">×</button>
-        </header>
-        <div class="reason-grid">
-          <button type="button" class="reason-button is-selected">Access blocked</button>
-          <button type="button" class="reason-button">Wet ground</button>
-          <button type="button" class="reason-button">Equipment</button>
-          <button type="button" class="reason-button">Safety</button>
-        </div>
-        <label class="field-label">Note<textarea id="exception-note" rows="4">Standing water at the lower gate. Continued sampling in the accessible part of Zone 3.</textarea></label>
-        <label class="photo-button"><input type="file" accept="image/*" /><span>＋</span>Add photo evidence</label>
-        <footer class="modal__actions"><button class="secondary-button" value="cancel">Cancel</button><button class="primary-button" value="confirm" type="submit">Save locally</button></footer>
       </form>
     </dialog>
 
