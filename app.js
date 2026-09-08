@@ -3,6 +3,8 @@ const initialState = () => ({
   coreCount: 18,
   targetCores: 25,
   sampleId: "CASE07-000184",
+  serverSampleId: null,
+  soilReady: false,
   online: true,
   queued: 0,
   gnss: "good",
@@ -21,6 +23,7 @@ const initialState = () => ({
   records: [
     {
       id: "CASE07-000183",
+      sampleId: "S8264",
       farm: "Green Estate",
       area: "South Field",
       zone: "Zone 2",
@@ -36,6 +39,7 @@ const initialState = () => ({
 let state = initialState();
 let toastTimer;
 let commissionTimer;
+let podReturnTimer;
 
 const viewHost = document.querySelector("#view-host");
 const contextModal = document.querySelector("#context-modal");
@@ -128,7 +132,7 @@ function mapPanel(large = false) {
 }
 
 function coreDots() {
-  return Array.from({ length: state.targetCores }, (_, index) => {
+  return Array.from({ length: Math.max(state.targetCores, state.coreCount) }, (_, index) => {
     const complete = index < state.coreCount ? " is-complete" : "";
     const latest = index === state.coreCount - 1 ? " is-latest" : "";
     return `<span class="core-dot${complete}${latest}">${index + 1}</span>`;
@@ -136,24 +140,22 @@ function coreDots() {
 }
 
 function captureView() {
-  const progress = Math.round((state.coreCount / state.targetCores) * 100);
-  const isReady = state.coreCount >= state.targetCores;
   const queueStatus = state.online ? "Saved locally + synced" : "Saved locally · sync later";
   return `
     <div class="view-header">
-      <div><span class="eyebrow">Composite sample · offline capable</span><h1>${isReady ? "Sample ready to commission" : "Collect cores across Zone 3"}</h1><p>Each valid sampling-switch trigger is recorded immediately with time, position and confirmed geography.</p></div>
-      <div class="view-actions"><button class="secondary-button" type="button" data-action="report-issue">Report issue</button><button class="primary-button" type="button" data-action="open-tray" ${isReady ? "" : "disabled"}>Use position 11</button></div>
+      <div><span class="eyebrow">Background capture · no screen tap required</span><h1>${state.soilReady ? "Soil volume reached" : "Sampling in progress"}</h1><p>The physical sampling switch records each core automatically with time, position and confirmed geography.</p></div>
+      <div class="view-actions"><button class="secondary-button field-problem-button" type="button" data-action="report-issue">Report problem</button><div class="position-indication ${state.soilReady ? "is-ready" : ""}"><small>Position 11</small><strong>${state.soilReady ? "Place filled pod when ready" : "Use when soil volume is sufficient"}</strong></div></div>
     </div>
     <div class="capture-layout">
       <div class="panel sample-card">
         <div class="sample-progress">
-          <div class="core-ring" style="--progress:${progress}"><div class="core-ring__value"><strong>${state.coreCount}</strong><small>of ${state.targetCores} cores</small></div></div>
-          <strong>${isReady ? "Coverage target reached" : `${state.targetCores - state.coreCount} cores remaining`}</strong>
+          <div class="core-ring"><div class="core-ring__value"><strong>${state.coreCount}</strong><small>cores recorded</small></div></div>
+          <strong>${state.soilReady ? "Pod has sufficient soil" : "Automatic counter active"}</strong>
           <small>${queueStatus}</small>
-          <div class="sample-actions"><button class="trigger-button" type="button" data-action="add-core" ${isReady ? "disabled" : ""}>＋ Simulate trigger</button><button class="ghost-light-button" type="button" data-action="fill-cores" ${isReady ? "disabled" : ""}>Complete to 25</button></div>
+          <span class="background-capture-state"><i></i> Sampling trigger connected</span>
         </div>
         <div class="sample-detail">
-          <div class="sample-id-row"><div><small>Local sample ID</small><strong>${state.sampleId}</strong></div><span class="status-pill ${state.online ? "green" : "amber"}">${state.online ? "Synchronised" : "Offline record"}</span></div>
+          <div class="sample-id-row"><div><small>Case record ID</small><strong>${state.sampleId}</strong></div><span class="status-pill ${state.online ? "green" : "amber"}">${state.online ? "Synchronised" : "Offline record"}</span></div>
           <div class="detail-grid">
             <div class="detail-tile"><small>Active zone</small><strong>${state.context.zone}</strong></div>
             <div class="detail-tile"><small>Context source</small><strong>${state.manualContext ? "Operator selected" : "GNSS assigned"}</strong></div>
@@ -161,6 +163,7 @@ function captureView() {
             <div class="detail-tile"><small>Required method</small><strong>W-pattern coverage</strong></div>
           </div>
           <div class="context-lock is-locked">▣ Context locked after first core · geometry GE-EM-Z3-r4 · explicit override remains available</div>
+          <div class="reference-note"><strong>25-core standard reference</strong><span>Soil volume and test type determine when the composite is ready. The count may finish below or above 25.</span></div>
           <div class="capture-timeline"><div class="capture-timeline__head"><span>Sampling events</span><span>${state.coreCount} immutable local records</span></div><div class="core-dots">${coreDots()}</div></div>
         </div>
       </div>
@@ -214,32 +217,38 @@ function positionEleven() {
   const returned = state.commissionStage >= 6;
   let title = "Position 11 ready";
   let description = "Place the filled pod here. Identification and weighing start automatically.";
-  let action = `<button class="primary-button" type="button" data-action="start-commission">Place filled pod</button>`;
+  let primaryIndication = `<span>Waiting for a filled pod</span>`;
 
   if (state.commissionRunning) {
     title = state.commissionStage < 4 ? "Reading pod automatically" : "Waiting for stable weight";
     description = state.commissionStage < 4 ? "Keep the pod seated on position 11." : "No result is committed until the stability criterion is met.";
-    action = `<button class="primary-button" type="button" disabled>Processing…</button>`;
+    primaryIndication = `<span>Pod detected automatically · keep it seated</span>`;
   } else if (complete && !returned) {
     title = "Sample commissioned locally";
-    description = "POD-0182 is bound to the composite sample, 25 events and confirmed geography.";
-    action = `<button class="primary-button" type="button" data-action="return-pod">Return pod to tray</button>`;
+    description = `POD-0182 is bound to ${state.coreCount} sampling events and the confirmed geography.`;
+    primaryIndication = `<span>Return the filled pod to any green slot</span>`;
   } else if (returned) {
     title = "Pod returned to position 5";
     description = "The slot is red because it contains a filled sample. The tray stores temporary state, not permanent pod identity.";
-    action = `<button class="secondary-button" type="button" data-action="new-sample">Start next sample</button>`;
+    primaryIndication = `<span>Ready to capture the next composite automatically</span>`;
   }
 
   return `
     <div class="panel position-eleven">
-      <div class="panel__header"><div><h2>Position 11</h2><p>RFID · QR · stationary weighing</p></div><span class="status-pill ${complete ? "green" : state.commissionRunning ? "amber" : "grey"}">${complete ? "Committed" : state.commissionRunning ? "Processing" : "Ready"}</span></div>
-      <div class="commission-stage">
-        <div class="scale-platform"><div class="pod ${hasPod ? "" : "is-empty"}">POD<br>0182</div></div>
-        <h3>${title}</h3><p>${description}</p>
-        <div class="commission-steps">${commissionSteps()}</div>
-        ${state.commissionStage >= 4 ? `<div class="weight-readout"><div><small>${complete ? "Stable net soil mass" : "Live weight · stability check"}</small><strong>${complete ? "421 g" : "418…423 g"}</strong></div><span class="status-pill ${complete ? "green" : "amber"}">${complete ? "Stable" : "Waiting"}</span></div>` : ""}
-        ${action}
+      <div class="panel__header"><div><h2>Separate Position-11 display</h2><p>Small case-mounted screen · immediate feedback only</p></div><span class="status-pill ${complete ? "green" : state.commissionRunning ? "amber" : "grey"}">${complete ? "Committed" : state.commissionRunning ? "Processing" : "Ready"}</span></div>
+      <div class="local-display-shell">
+        <div class="local-display-screen">
+          <span class="local-display-label">POSITION 11 · LOCAL DISPLAY</span>
+          <div class="commission-stage">
+            <div class="scale-platform"><div class="pod ${hasPod ? "" : "is-empty"}">POD<br>0182</div></div>
+            <h3>${title}</h3><p>${description}</p>
+            <div class="commission-steps">${commissionSteps()}</div>
+            ${state.commissionStage >= 4 ? `<div class="weight-readout"><div><small>${complete ? "Stable net soil mass" : "Live weight · stability check"}</small><strong>${complete ? "421 g" : "418…423 g"}</strong></div><span class="status-pill ${complete ? "green" : "amber"}">${complete ? "Stable" : "Waiting"}</span></div>` : ""}
+            ${complete && !returned ? `<button class="local-display-action" type="button" data-action="remeasure">Remeasure / Reweigh</button>` : ""}
+          </div>
+        </div>
       </div>
+      <div class="position-eleven-indication"><small>Primary operator display</small>${primaryIndication}</div>
     </div>`;
 }
 
@@ -247,7 +256,7 @@ function trayView() {
   return `
     <div class="view-header">
       <div><span class="eyebrow">Physical custody · simple operator indication</span><h1>Pod tray and commissioning</h1><p>Ten storage positions show availability by presence state. Permanent pod identity is read only at position 11.</p></div>
-      <span class="status-pill ${state.coreCount >= state.targetCores ? "green" : "amber"}">${state.coreCount >= state.targetCores ? "Composite ready" : `${state.targetCores - state.coreCount} cores remaining`}</span>
+      <span class="status-pill ${state.soilReady ? "green" : "blue"}">${state.soilReady ? "Soil volume reached" : `${state.coreCount} cores recorded`}</span>
     </div>
     <div class="tray-layout">
       <div class="panel tray-panel">
@@ -262,6 +271,7 @@ function trayView() {
 function recordCards() {
   const active = {
     id: state.sampleId,
+    sampleId: state.serverSampleId,
     farm: state.context.farm,
     area: state.context.area,
     zone: state.context.zone,
@@ -275,13 +285,13 @@ function recordCards() {
   return all.map((record) => {
     const tone = record.status === "synced" ? "green" : record.status === "queued" ? "amber" : "blue";
     const label = record.status === "synced" ? "Synchronised" : record.status === "queued" ? "Waiting to sync" : "Active capture";
-    return `<article class="record-card"><div class="record-card__top"><div><small>Local sample identity</small><strong>${record.id}</strong></div><span class="status-pill ${tone}">${label}</span></div><div class="record-meta"><div><span>Context</span><b>${record.area} · ${record.zone}</b></div><div><span>Geometry revision</span><b>GE-EM-Z3-r4</b></div><div><span>Sampling events</span><b>${record.cores} cores</b></div><div><span>Physical pod</span><b>${record.pod}</b></div><div><span>Net mass</span><b>${record.mass}</b></div><div><span>Context source</span><b>${state.manualContext ? "Operator selected" : "GNSS assigned"}</b></div></div><p class="tray-rule">${record.serverLink}</p></article>`;
+    return `<article class="record-card"><div class="record-card__top"><div><small>Case record ID</small><strong>${record.id}</strong><small class="sample-id-secondary">S2L Sample ID · ${record.sampleId || "Created after server matching"}</small></div><span class="status-pill ${tone}">${label}</span></div><div class="record-meta"><div><span>Context</span><b>${record.area} · ${record.zone}</b></div><div><span>Geometry revision</span><b>GE-EM-Z3-r4</b></div><div><span>Sampling events</span><b>${record.cores} cores</b></div><div><span>Physical pod</span><b>${record.pod}</b></div><div><span>Net mass</span><b>${record.mass}</b></div><div><span>Context source</span><b>${state.manualContext ? "Operator selected" : "GNSS assigned"}</b></div></div><p class="tray-rule">${record.serverLink}</p></article>`;
   }).join("");
 }
 
 function recordsView() {
   return `
-    <div class="view-header"><div><span class="eyebrow">Local non-volatile storage</span><h1>Sample records</h1><p>Case-generated IDs remain globally unique offline. Each record retains the Area geometry revision used during capture.</p></div><div class="view-actions">${state.online && state.queued ? `<button class="primary-button" type="button" data-action="sync-now">Sync ${state.queued} records</button>` : ""}<button class="secondary-button" type="button" data-action="toggle-connectivity">${state.online ? "Go offline" : "Reconnect 4G"}</button></div></div>
+    <div class="view-header"><div><span class="eyebrow">Local non-volatile storage</span><h1>Field capture records</h1><p>Case record IDs remain globally unique offline. The S2L Sample ID is created automatically after server matching.</p></div><div class="view-actions">${state.online && state.queued ? `<button class="primary-button" type="button" data-action="sync-now">Sync ${state.queued} records</button>` : ""}<button class="secondary-button" type="button" data-action="toggle-connectivity">${state.online ? "Go offline" : "Reconnect 4G"}</button></div></div>
     <div class="record-grid">${recordCards()}</div>
     <div class="audit-note" style="margin:12px 0 0"><span>i</span><p>The Smart Case does not download, display or execute jobs and orders. A captured sample remains valid even if its server-side work linkage is unresolved.</p></div>`;
 }
@@ -298,7 +308,8 @@ function statusView() {
       <article class="health-card"><div class="health-card__top"><span class="health-card__icon">▦</span><span class="health-value good">Ready</span></div><h3>QR / 2D reader</h3><p>Automatic visible-identity fallback aligned to the pod position.</p></article>
       <article class="health-card"><div class="health-card__top"><span class="health-card__icon">kg</span><span class="health-value good">Zeroed</span></div><h3>Weighing station</h3><p>Stationary use only. Results commit after stability is confirmed.</p></article>
       <article class="health-card"><div class="health-card__top"><span class="health-card__icon">▰</span><span class="health-value good">61%</span></div><h3>Local storage</h3><p>38.7 GB free · 18 farm packs · persistent event sequence healthy.</p></article>
-      <article class="health-card"><div class="health-card__top"><span class="health-card__icon">☀</span><span class="health-value good">Normal</span></div><h3>Outdoor display</h3><p>10-inch sunlight-readable display · resistive-touch field baseline · IP65 target.</p></article>
+      <article class="health-card"><div class="health-card__top"><span class="health-card__icon">☀</span><span class="health-value good">Normal</span></div><h3>Primary operator display</h3><p>10.1-inch high-brightness IPS · PCAP glove/wet trial · resistive fallback if field testing underperforms.</p></article>
+      <article class="health-card"><div class="health-card__top"><span class="health-card__icon">11</span><span class="health-value good">Ready</span></div><h3>Local case display</h3><p>Position-11 feedback only · detect, identity, stable weight, completion and remeasure.</p></article>
       <article class="health-card"><div class="health-card__top"><span class="health-card__icon">↻</span><span class="health-value ${state.queued ? "warn" : "good"}">${state.queued ? `${state.queued} waiting` : "Current"}</span></div><h3>Synchronisation</h3><p>${state.online ? "Reference data checked just now." : "Queued data will retry when signal returns."}</p></article>
     </div>
     <div class="case-info"><div><small>Permanent Case ID</small><strong>CASE07</strong></div><div><small>Software</small><strong>Operator Capture v0.2</strong></div><div><small>Offline maps</small><strong>18 farms · 312 MB</strong></div><div><small>Last health check</small><strong>Today · 10:42</strong></div></div>`;
@@ -323,7 +334,6 @@ function setView(view) {
 }
 
 function addCore() {
-  if (state.coreCount >= state.targetCores) return;
   state.coreCount += 1;
   queueLocalRecord();
   render();
@@ -335,18 +345,18 @@ function addCore() {
   showToast(`Core ${state.coreCount} captured locally · ${gnssConfig[state.gnss].accuracy}`);
 }
 
-function completeCores() {
-  const remaining = state.targetCores - state.coreCount;
-  if (remaining <= 0) return;
-  state.coreCount = state.targetCores;
-  queueLocalRecord(remaining);
+function markSoilReady() {
+  const added = Math.max(0, 23 - state.coreCount);
+  state.coreCount += added;
+  state.soilReady = true;
+  queueLocalRecord(added);
   render();
-  showToast("25-core target reached · composite ready for position 11");
+  showToast(`${state.coreCount} cores recorded · soil volume reached before the 25-core reference`);
 }
 
 function startCommissioning() {
   if (state.commissionRunning || state.commissionStage >= 5) return;
-  if (state.coreCount < state.targetCores) completeCores();
+  state.soilReady = true;
   state.view = "tray";
   state.commissionRunning = true;
   state.commissionStage = 1;
@@ -360,8 +370,11 @@ function startCommissioning() {
       state.commissionRunning = false;
       state.commissionedPod = { id: "POD-0182", mass: 421 };
       state.recordSynced = state.online;
+      if (state.online) state.serverSampleId = "S8271";
       queueLocalRecord(4);
-      showToast(state.online ? "Sample commissioned and synchronised" : "Sample commissioned safely offline");
+      showToast(state.online ? "Case record matched · Sample S8271 created" : "Case record commissioned safely offline");
+      window.clearTimeout(podReturnTimer);
+      podReturnTimer = window.setTimeout(returnPod, 1100);
     }
     render();
   }, 850);
@@ -376,14 +389,31 @@ function returnPod() {
   showToast(`Filled sample returned · position ${slot + 1} is now red`);
 }
 
+function remeasurePod() {
+  window.clearTimeout(podReturnTimer);
+  state.commissionRunning = true;
+  state.commissionStage = 4;
+  render();
+  showToast("Remeasuring pod · waiting for stable weight");
+  window.setTimeout(() => {
+    state.commissionRunning = false;
+    state.commissionStage = 5;
+    render();
+    showToast("Stable net soil mass confirmed · 421 g");
+    podReturnTimer = window.setTimeout(returnPod, 1100);
+  }, 900);
+}
+
 function newSample() {
   state.coreCount = 0;
   state.sampleId = "CASE07-000185";
+  state.serverSampleId = null;
+  state.soilReady = false;
   state.commissionStage = 0;
   state.commissionedPod = null;
   state.recordSynced = false;
   setView("capture");
-  showToast("New local sample identity reserved · CASE07-000185");
+  showToast("New case record reserved · CASE07-000185");
 }
 
 function toggleConnectivity(force) {
@@ -399,9 +429,12 @@ function syncNow() {
   }
   const synced = state.queued;
   state.queued = 0;
-  if (state.commissionedPod) state.recordSynced = true;
+  if (state.commissionedPod) {
+    state.recordSynced = true;
+    state.serverSampleId = "S8271";
+  }
   render();
-  showToast(`${synced || "All"} local records synchronised · server reconciliation complete`);
+  showToast(`${synced || "All"} local records synchronised · Sample S8271 created by server matching`);
 }
 
 function openContextModal(gnss = state.gnss) {
@@ -416,19 +449,19 @@ function openContextModal(gnss = state.gnss) {
 function createIssueModal() {
   if (document.querySelector("#issue-modal")) return document.querySelector("#issue-modal");
   document.body.insertAdjacentHTML("beforeend", `
-    <dialog class="modal modal--compact" id="issue-modal">
+    <dialog class="modal modal--compact modal--field" id="issue-modal">
       <form method="dialog" class="modal__surface" id="issue-form">
-        <header class="modal__header"><div><span class="eyebrow">Offline field evidence</span><h2>Report an issue</h2><p>The note and photo can be saved without signal.</p></div><button class="icon-button" value="cancel" aria-label="Close">×</button></header>
-        <div class="reason-grid"><button class="reason-button is-selected" type="button">Access</button><button class="reason-button" type="button">Weather</button><button class="reason-button" type="button">Equipment</button><button class="reason-button" type="button">Safety</button></div>
-        <label class="field-label">What happened?<textarea rows="4">Standing water at the lower gate. Sampling can continue from the north entrance.</textarea></label>
-        <label class="photo-button"><input type="file" accept="image/*"><span>▧</span>Add photo evidence</label>
-        <footer class="modal__actions"><button class="secondary-button" value="cancel">Cancel</button><button class="primary-button" value="confirm" type="submit">Save locally</button></footer>
+        <header class="modal__header"><div><span class="eyebrow">Works without signal</span><h2>What is the problem?</h2><p>Choose one large button. Only use text for something different.</p></div><button class="icon-button" value="cancel" aria-label="Close">×</button></header>
+        <div class="reason-grid field-reason-grid"><button class="reason-button is-selected" type="button" data-reason="access">Access blocked</button><button class="reason-button" type="button" data-reason="wet">Too wet</button><button class="reason-button" type="button" data-reason="equipment">Equipment problem</button><button class="reason-button" type="button" data-reason="safety">Safety issue</button><button class="reason-button reason-button--other" type="button" data-reason="other">Other</button></div>
+        <label class="field-label other-reason-field" hidden>Tell us briefly<textarea rows="3" placeholder="Type a short note"></textarea></label>
+        <footer class="modal__actions"><button class="secondary-button" value="cancel">Cancel</button><button class="primary-button" value="confirm" type="submit">Save problem</button></footer>
       </form>
     </dialog>`);
   const modal = document.querySelector("#issue-modal");
   modal.querySelectorAll(".reason-button").forEach((button) => button.addEventListener("click", () => {
     modal.querySelectorAll(".reason-button").forEach((item) => item.classList.remove("is-selected"));
     button.classList.add("is-selected");
+    modal.querySelector(".other-reason-field").hidden = button.dataset.reason !== "other";
   }));
   modal.querySelector("#issue-form").addEventListener("submit", (event) => {
     if (event.submitter?.value !== "confirm") return;
@@ -445,6 +478,7 @@ document.querySelector("#context-button").addEventListener("click", () => openCo
 document.querySelector("#connectivity-button").addEventListener("click", () => toggleConnectivity());
 document.querySelector("#reset-demo").addEventListener("click", () => {
   window.clearInterval(commissionTimer);
+  window.clearTimeout(podReturnTimer);
   state = initialState();
   render();
   showToast("Smart Case demo reset");
@@ -474,17 +508,13 @@ viewHost.addEventListener("click", (event) => {
   if (!action) return;
   const actions = {
     "add-core": addCore,
-    "fill-cores": completeCores,
-    "open-tray": () => setView("tray"),
     "report-issue": () => createIssueModal().showModal(),
     "change-context": () => openContextModal(),
     "simulate-ambiguous": () => openContextModal("ambiguous"),
     "recenter": () => showToast("Map recentered · north-up follow mode"),
     "zoom-in": () => showToast("Zoomed in · offline map remains available"),
     "zoom-out": () => showToast("Zoomed out · farm pack includes a 2 km margin"),
-    "start-commission": startCommissioning,
-    "return-pod": returnPod,
-    "new-sample": newSample,
+    "remeasure": remeasurePod,
     "sync-now": syncNow,
     "toggle-connectivity": () => toggleConnectivity()
   };
@@ -495,7 +525,7 @@ document.querySelectorAll("[data-demo-step]").forEach((button) => button.addEven
   const step = button.dataset.demoStep;
   if (step === "capture") {
     state.view = "capture";
-    completeCores();
+    markSoilReady();
   }
   if (step === "commission") startCommissioning();
   if (step === "offline") {
