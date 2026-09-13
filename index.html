@@ -3,128 +3,115 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#102b24" />
-    <title>S2L Smart Case — Stakeholder Prototype</title>
+    <meta name="theme-color" content="#122f27" />
+    <title>S2L Smart Case — Field Prototype</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="prototype-banner">
-      <span>Smart Case stakeholder prototype</span>
-      <span>Fictional device data · safe to explore</span>
-    </div>
+    <header class="prototype-banner">
+      <strong>Smart Case stakeholder prototype</strong>
+      <span>0.9.1 field workflow · fictional data</span>
+    </header>
 
-    <main class="stage">
-      <section class="case-frame" aria-label="S2L Smart Case 10-inch operator display prototype">
-        <div class="case-hardware" aria-hidden="true">
-          <span class="case-bolt case-bolt--one"></span>
-          <span class="case-bolt case-bolt--two"></span>
-          <span class="case-bolt case-bolt--three"></span>
-          <span class="case-bolt case-bolt--four"></span>
-          <span class="case-label">S2L SMART CASE · CASE07</span>
-        </div>
+    <main class="prototype-stage">
+      <section class="primary-display" aria-label="S2L Smart Case 10.1-inch operator display">
+        <div class="display-bezel">
+          <div class="display-screen">
+            <header class="screen-header">
+              <a class="brand" href="#" aria-label="Return to sampling screen">
+                <span class="brand-mark"><i></i><i></i><i></i></span>
+                <span><strong>agrii</strong><small>Smart Case</small></span>
+              </a>
 
-        <div class="device-screen">
-          <header class="status-bar">
-            <a class="device-brand" href="#" aria-label="Smart Case home">
-              <span class="device-brand__mark"><i></i><i></i><i></i></span>
-              <span><strong>agrii</strong><small>Smart Case</small></span>
-            </a>
-
-            <button class="context-chip" id="context-button" type="button" aria-label="Change active location context">
-              <span class="context-chip__icon">⌖</span>
-              <span><small>Active context</small><strong id="context-label">Green Estate · East Meadow · Zone 3</strong></span>
-              <span class="context-chip__mode" id="context-mode">Auto GNSS</span>
-            </button>
-
-            <div class="system-status">
-              <button class="status-token" id="connectivity-button" type="button" aria-label="Toggle connectivity">
-                <span class="status-dot status-dot--online" id="connectivity-dot"></span>
-                <span><small>Connection</small><strong id="connectivity-label">4G online</strong></span>
+              <button class="location-button" id="location-button" type="button">
+                <span class="location-icon">⌖</span>
+                <span><small>Sampling location</small><strong id="location-label">Green Estate · East Meadow · Zone 3</strong></span>
+                <span class="location-mode" id="location-mode">AUTO</span>
               </button>
-              <div class="status-token">
-                <span class="status-symbol">◉</span>
-                <span><small>GNSS</small><strong id="gnss-summary">Good ±3 m</strong></span>
-              </div>
-              <div class="status-token status-token--compact">
-                <span class="queue-count" id="queue-count">0</span>
-                <span><small>Local queue</small><strong id="queue-label">Synced</strong></span>
-              </div>
-              <div class="status-token status-token--compact">
-                <span class="status-symbol">⚡</span>
-                <span><small>Vehicle</small><strong>13.8 V</strong></span>
-              </div>
-            </div>
-          </header>
 
-          <div class="device-layout">
-            <nav class="side-nav" aria-label="Smart Case navigation">
-              <button class="nav-button is-active" type="button" data-view="capture"><span>◎</span><b>Capture</b></button>
-              <button class="nav-button" type="button" data-view="map"><span>⌖</span><b>Map</b></button>
-              <button class="nav-button" type="button" data-view="tray"><span>▦</span><b>Tray</b></button>
-              <button class="nav-button" type="button" data-view="records"><span>≡</span><b>Records</b></button>
-              <button class="nav-button" type="button" data-view="status"><span>◌</span><b>Case</b></button>
-              <div class="side-nav__footer">
-                <span>SM</span>
-                <small>Sarah</small>
+              <div class="header-status" aria-label="Device status">
+                <span class="header-status__item"><i class="status-light status-light--green" id="connection-light"></i><b id="connection-label">ONLINE</b></span>
+                <span class="header-status__item"><i class="gnss-icon">◎</i><b id="gnss-label">GNSS ±1.4 m</b></span>
               </div>
+            </header>
+
+            <section class="screen-content" id="screen-content" tabindex="-1"></section>
+
+            <nav class="field-nav" aria-label="Smart Case screens">
+              <button class="field-nav__button is-active" type="button" data-view="sample"><span>●</span><strong>Sampling</strong></button>
+              <button class="field-nav__button" type="button" data-view="map"><span>⌖</span><strong>Map &amp; location</strong></button>
+              <button class="field-nav__button" type="button" data-view="case"><span>▦</span><strong>Case &amp; pods</strong></button>
             </nav>
 
-            <section class="view-host" id="view-host" tabindex="-1"></section>
-          </div>
+            <section class="screen-modal" id="location-dialog" hidden>
+              <form class="dialog-surface" id="location-form">
+                <header class="dialog-header">
+                  <div><small>LOCATION CHECK</small><h2>Choose the correct zone</h2><p>Only needed when GNSS accuracy is worse than 2 m or the boundary match is unclear.</p></div>
+                  <button class="close-button" type="button" data-close-panel="location-dialog" aria-label="Close location selection">×</button>
+                </header>
+                <div class="zone-options">
+                  <button type="button" class="zone-option" data-zone="Zone 2"><strong>Zone 2</strong><span>North section</span></button>
+                  <button type="button" class="zone-option is-selected" data-zone="Zone 3"><strong>Zone 3</strong><span>Current selection</span></button>
+                  <button type="button" class="zone-option" data-zone="Zone 4"><strong>Zone 4</strong><span>South boundary</span></button>
+                </div>
+                <footer class="dialog-actions">
+                  <button class="dialog-secondary" id="auto-location-button" type="button">Try automatic GNSS</button>
+                  <button class="dialog-primary" type="submit">Confirm location</button>
+                </footer>
+              </form>
+            </section>
 
-          <footer class="screen-footer">
-            <span><i class="footer-light footer-light--green"></i> Case ready</span>
-            <span id="footer-location">51.20184, -1.42176 · East Meadow</span>
-            <span id="footer-sync">Last sync just now</span>
-            <span>Powered by <strong>S2L</strong></span>
-          </footer>
+            <section class="screen-modal" id="problem-dialog" hidden>
+              <form class="dialog-surface" id="problem-form">
+                <header class="dialog-header">
+                  <div><small>FIELD PROBLEM</small><h2>What has stopped the work?</h2><p>Tap one reason. It is saved immediately on the Smart Case.</p></div>
+                  <button class="close-button" type="button" data-close-panel="problem-dialog" aria-label="Close problem report">×</button>
+                </header>
+                <div class="problem-options">
+                  <button type="button" data-problem="Access blocked"><span>⛔</span><strong>Access blocked</strong></button>
+                  <button type="button" data-problem="Too wet"><span>☂</span><strong>Too wet</strong></button>
+                  <button type="button" data-problem="Equipment problem"><span>⚒</span><strong>Equipment problem</strong></button>
+                  <button type="button" data-problem="Safety issue"><span>!</span><strong>Safety issue</strong></button>
+                  <button type="button" class="problem-other" data-problem="Other"><span>…</span><strong>Other</strong></button>
+                </div>
+                <label class="other-field" id="other-field" hidden>
+                  <span>Short description</span>
+                  <textarea id="other-text" rows="3" placeholder="Type only what the team needs to know"></textarea>
+                </label>
+                <footer class="dialog-actions" id="other-actions" hidden>
+                  <button class="dialog-primary" id="save-other-button" type="button">Save problem</button>
+                </footer>
+              </form>
+            </section>
+          </div>
+          <span class="display-model">10.1″ HIGH-BRIGHTNESS TOUCH DISPLAY</span>
         </div>
       </section>
 
-      <aside class="demo-guide">
-        <div>
-          <span class="eyebrow">Stakeholder walkthrough</span>
-          <h1>One field sample, fully traceable offline.</h1>
-          <p>This prototype shows background field capture on the primary 10-inch display and the separate, minimal Position-11 display.</p>
-        </div>
-        <ol>
-          <li><button type="button" data-demo-step="capture"><span>1</span><strong>Run background capture</strong><small>Each physical trigger creates a local event; 25 is a guide, not a limit.</small></button></li>
-          <li><button type="button" data-demo-step="commission"><span>2</span><strong>Place pod at Position 11</strong><small>Detection, RFID, QR and stable weight happen automatically.</small></button></li>
-          <li><button type="button" data-demo-step="offline"><span>3</span><strong>Work without signal</strong><small>Records remain valid and queue locally.</small></button></li>
-          <li><button type="button" data-demo-step="sync"><span>4</span><strong>Reconnect and sync</strong><small>The server reconciles commercial work later.</small></button></li>
-        </ol>
-        <div class="guide-note">
-          <strong>Design rule</strong>
-          <p>Normal sampling needs no screen interaction. The operator only responds to clear exceptions or the separate Position-11 feedback.</p>
-        </div>
-        <button class="reset-button" id="reset-demo" type="button">Reset demo</button>
+      <aside class="demo-rail">
+        <section class="sensing-unit" aria-label="Separate Sensing Position interface">
+          <div class="sensing-unit__label"><span>S2L SENSING POSITION</span><i id="sensing-led"></i></div>
+          <div class="sensing-screen" id="sensing-screen"></div>
+          <div class="sensing-controls">
+            <button class="measure-button" id="measure-button" type="button">MEASURE / SYNC</button>
+            <button class="zero-button" id="zero-button" type="button">TARE / ZERO</button>
+          </div>
+        </section>
+
+        <section class="walkthrough">
+          <span class="walkthrough__eyebrow">Stakeholder controls</span>
+          <h1>Six pods. One clear field workflow.</h1>
+          <p>These controls simulate hardware events. They are not part of the operator’s normal screen workflow.</p>
+          <div class="walkthrough__steps">
+            <button type="button" data-demo="capture"><span>1</span><strong>Record to 25 cores</strong><small>Physical triggers update the screen automatically.</small></button>
+            <button type="button" data-demo="pod"><span>2</span><strong>Place filled pod</strong><small>The Sensing Position checks identity and 200 g net mass.</small></button>
+            <button type="button" data-demo="offline"><span>3</span><strong>Lose signal</strong><small>New events remain safe on the case.</small></button>
+            <button type="button" data-demo="sync"><span>4</span><strong>Reconnect &amp; sync</strong><small>Queued records upload when signal returns.</small></button>
+          </div>
+          <button class="reset-button" id="reset-button" type="button">Reset demonstration</button>
+        </section>
       </aside>
     </main>
-
-    <dialog class="modal" id="context-modal">
-      <form method="dialog" class="modal__surface" id="context-form">
-        <header class="modal__header">
-          <div><span class="eyebrow">Offline location context</span><h2>Confirm where you are sampling</h2><p>Selections come from geography stored locally on CASE07.</p></div>
-          <button class="icon-button" value="cancel" aria-label="Close">×</button>
-        </header>
-        <div class="gnss-choice-grid">
-          <button class="gnss-choice is-selected" type="button" data-gnss="good"><span class="signal signal--green"></span><strong>Good</strong><small>±3 m · automatic</small></button>
-          <button class="gnss-choice" type="button" data-gnss="degraded"><span class="signal signal--amber"></span><strong>Degraded</strong><small>±8 m · hold context</small></button>
-          <button class="gnss-choice" type="button" data-gnss="ambiguous"><span class="signal signal--amber"></span><strong>Ambiguous</strong><small>Boundary overlap</small></button>
-          <button class="gnss-choice" type="button" data-gnss="unavailable"><span class="signal signal--red"></span><strong>Unavailable</strong><small>Manual context</small></button>
-        </div>
-        <div class="manual-fields" id="manual-fields">
-          <label>Farm<select id="farm-select"><option>Green Estate</option><option>Brown Farming Ltd</option></select></label>
-          <label>Area / field<select id="area-select"><option>East Meadow</option><option>South Field</option><option>Home Paddock</option></select></label>
-          <label>Zone<select id="zone-select"><option>Zone 3</option><option>Zone 2</option><option>Zone 1</option></select></label>
-        </div>
-        <div class="audit-note"><span>i</span><p>A manual change is stored with the previous context, operator, timestamp and available GNSS evidence.</p></div>
-        <footer class="modal__actions">
-          <button class="secondary-button" id="resume-auto" type="button">Resume automatic GNSS</button>
-          <button class="primary-button" value="confirm" type="submit">Use selected context</button>
-        </footer>
-      </form>
-    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="app.js"></script>
