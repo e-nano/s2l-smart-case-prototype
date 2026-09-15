@@ -41,15 +41,10 @@ button:focus-visible, textarea:focus-visible { outline: 5px solid rgba(118, 189,
 .display-screen { position: relative; aspect-ratio: 16 / 10; min-height: 650px; display: grid; grid-template-rows: 92px minmax(0, 1fr) 84px; overflow: hidden; border: 2px solid #090c0a; border-radius: 15px; background: #f5f7f4; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 
 .screen-header { min-width: 0; display: grid; grid-template-columns: 142px minmax(330px, 1fr) auto; gap: 16px; align-items: center; padding: 12px 18px; color: #fff; background: var(--forest); }
-.brand { display: flex; align-items: center; gap: 11px; color: #fff; text-decoration: none; }
+.brand { display: flex; align-items: center; color: #fff; text-decoration: none; }
 .brand strong, .brand small { display: block; }
 .brand strong { font-size: 25px; line-height: 1; letter-spacing: -.04em; }
-.brand small { margin-top: 4px; color: #bad0c7; font-size: 13px; font-weight: 700; }
-.brand-mark { width: 37px; height: 40px; position: relative; flex: 0 0 auto; }
-.brand-mark i { position: absolute; width: 15px; height: 29px; border-radius: 100% 0 100% 0; background: var(--leaf); transform-origin: bottom right; }
-.brand-mark i:nth-child(1) { left: 1px; top: 4px; transform: rotate(-42deg); }
-.brand-mark i:nth-child(2) { left: 10px; top: 0; transform: rotate(-12deg) scale(.92); }
-.brand-mark i:nth-child(3) { left: 20px; top: 6px; transform: rotate(18deg) scale(.82); }
+.brand small { margin-top: 4px; color: #bad0c7; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 
 .location-button { min-width: 0; min-height: 66px; display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 12px; border: 2px solid rgba(255,255,255,.25); border-radius: 13px; color: #fff; background: rgba(255,255,255,.09); text-align: left; }
 .location-button:hover { background: rgba(255,255,255,.14); }
