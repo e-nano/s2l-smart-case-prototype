@@ -1,0 +1,52 @@
+/* Uses the existing prototype palette; no production device security implied. */
+.display-screen { width: 100%; min-width: 0; aspect-ratio: auto; grid-template-rows: 92px auto minmax(0, 1fr) 84px; min-height: 810px; }
+.display-screen.case-locked { grid-template-rows: 76px auto minmax(0, 1fr); }
+.case-locked .screen-header { grid-template-columns: 1fr auto; }
+.operator-bar { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding: 12px 18px; border-bottom: 2px solid var(--line); background: var(--surface); }
+.operator-bar > div { display: grid; gap: 3px; }
+.operator-bar small { font-size: 10px; letter-spacing: .09em; color: var(--ink-soft); font-weight: 800; }
+.operator-bar strong { font-size: 17px; }
+.operator-vehicle { margin-right: auto; }
+.operator-vehicle span { font-size: 11px; color: var(--ink-soft); }
+.operator-bar .operator-actions { display: flex; gap: 10px; }
+.operator-actions button, .case-association button { min-height: 50px; border: 2px solid var(--line); border-radius: 10px; padding: 8px 14px; background: white; color: var(--forest); font-weight: 800; }
+.pin-gate { padding: 26px; overflow: auto; min-height: 0; background: var(--surface-soft); }
+.pin-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 34px; align-items: center; max-width: 960px; margin: 0 auto; }
+.pin-intro > small { font-size: 11px; letter-spacing: .1em; font-weight: 900; color: var(--ink-soft); }
+.pin-intro h1 { margin: 8px 0 16px; font-size: clamp(30px,3vw,44px); line-height: 1.07; letter-spacing: -.04em; }
+.pin-intro p { line-height: 1.45; }
+.pin-intro dl { border-block: 1px solid var(--line); padding: 14px 0; margin: 22px 0; }
+.pin-intro dl > div { display: flex; gap: 12px; justify-content: space-between; margin: 10px 0; }
+.pin-intro dt { color: var(--ink-soft); }
+.pin-intro dd { margin: 0; font-weight: 850; }
+.pin-intro dd small { display: block; font-size: 9px; color: var(--ink-soft); text-align: right; }
+.pin-config-note { font-size: 13px; color: var(--ink-soft); }
+.pin-help { border: 0; padding: 12px 0; min-height: 48px; color: var(--forest); background: none; text-align: left; text-decoration: underline; font-weight: 800; }
+.pin-help-copy { padding: 12px; border-radius: 10px; background: var(--amber-pale); font-size: 13px; }
+.pin-demo-notice { color: var(--ink-soft); font-size: 11px; }
+.pin-panel { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 8px 22px rgba(14,43,34,.07); }
+.pin-dots { display: flex; justify-content: center; gap: 12px; }
+.pin-dots span { width: 42px; height: 52px; display: grid; place-items: center; border-bottom: 3px solid var(--line); font-size: 32px; }
+.pin-dots span.filled { border-color: var(--forest); }
+.pin-status { min-height: 48px; padding: 8px 0; font-size: 12px; line-height: 1.3; color: var(--red); }
+.pin-keypad { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+.pin-keypad button { min-height: 62px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface-soft); font-size: 24px; font-weight: 750; }
+.pin-keypad [data-pin-key="clear"] { font-size: 13px; }
+.pin-primary, .pin-secondary { width: 100%; min-height: 58px; border-radius: 12px; margin-top: 14px; padding: 12px; font-weight: 850; font-size: 16px; }
+.pin-primary { background: var(--forest); color: white; border: 2px solid var(--forest); }
+.pin-secondary { background: white; color: var(--forest); border: 2px solid var(--line); }
+.pin-person { text-align: center; padding: 8px 0; }
+.pin-person > span { display: grid; place-items: center; border-radius: 50%; width: 66px; height: 66px; margin: 0 auto; background: var(--leaf-pale); color: var(--forest); font-size: 28px; font-weight: 900; }
+.pin-person h2 { font-size: 25px; }
+.pin-person p { color: var(--ink-soft); font-size: 14px; line-height: 1.45; }
+.access-demo { padding: 18px; border: 2px solid var(--line); border-radius: 16px; background: white; }
+.access-demo h2 { margin: 0; font-size: 19px; }
+.access-demo p { font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+.access-demo label { display: block; font-size: 12px; font-weight: 850; }
+.access-demo select { font: inherit; font-size: 13px; width: 100%; min-height: 46px; margin-top: 6px; padding: 5px; }
+.case-association { margin-top: 16px; border: 2px solid var(--line); background: white; padding: 18px; border-radius: 16px; }
+.case-association p { font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
+button:disabled { cursor: not-allowed; opacity: .48; }
+@media (max-width: 1280px) { .demo-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); } .access-demo { grid-column: 1 / -1; } }
+@media (max-width: 960px) { .display-screen { grid-template-rows: auto auto minmax(0,1fr) 84px; } .pin-layout { gap: 20px; } .demo-rail { grid-template-columns: 1fr; } .screen-modal { inset: 225px 0 84px; } }
+@media (max-width: 700px) { .display-screen.case-locked { grid-template-rows: auto auto minmax(0,1fr); } .case-locked .screen-header { grid-template-columns: 1fr; } .pin-gate { padding: 20px 14px; } .pin-layout { grid-template-columns: 1fr; max-width: 430px; } .pin-panel { order: -1; } .pin-intro h1 { font-size: 30px; } .operator-bar { padding: 10px 14px; gap: 12px; } .operator-bar .operator-actions { width: 100%; } .operator-actions button { flex: 1; } }
